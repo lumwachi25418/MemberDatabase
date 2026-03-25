@@ -3,10 +3,7 @@ import { jsPDF } from "jspdf";
 
 const STORAGE_KEY = "church-members-data";
 
-// Format dates nicely
-const formatDate = (date) => new Date(date).toLocaleDateString("en-KE");
-
-// PDF Export
+// PDF Export (only names)
 const exportPDF = (members) => {
   const doc = new jsPDF();
   let y = 15;
@@ -16,15 +13,13 @@ const exportPDF = (members) => {
   y += 10;
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`Generated: ${formatDate(new Date())}`, 14, y);
+  doc.text(`Generated: ${new Date().toLocaleDateString("en-KE")}`, 14, y);
   y += 8;
   doc.line(14, y, 196, y);
   y += 10;
 
   members.forEach((m, idx) => {
     doc.text(`${idx + 1}. ${m.name}`, 14, y);
-    y += 6;
-    doc.text(`Expires: ${formatDate(m.expiryDate)}`, 20, y);
     y += 8;
     if (y > 270) {
       doc.addPage();
@@ -38,7 +33,6 @@ const exportPDF = (members) => {
 export default function Home() {
   const [members, setMembers] = useState([]);
   const [name, setName] = useState("");
-  const [today, setToday] = useState(new Date().toISOString().split("T")[0]);
 
   // Load from localStorage
   useEffect(() => {
@@ -54,10 +48,8 @@ export default function Home() {
   // Add member
   const addMember = () => {
     if (!name.trim()) return;
-    const currentYear = new Date().getFullYear();
-    const expiryDate = new Date(`${currentYear}-12-31`); // Expiry 31st Dec of the year
-    const newMember = { name, expiryDate: expiryDate.toISOString() };
-    setMembers([...members, newMember]);
+    const expiryDate = new Date(new Date().getFullYear(), 11, 31); // 31 Dec
+    setMembers([...members, { name, expiryDate: expiryDate.toISOString() }]);
     setName("");
   };
 
@@ -110,7 +102,7 @@ export default function Home() {
                 <tr key={idx} className={`${isExpired ? "bg-red-100" : "bg-green-50"} border-b`}>
                   <td className="p-2">{idx + 1}</td>
                   <td className="p-2 font-medium">{m.name}</td>
-                  <td className="p-2">{formatDate(m.expiryDate)}</td>
+                  <td className="p-2">{new Date(m.expiryDate).toLocaleDateString("en-KE")}</td>
                   <td className="p-2">
                     <button
                       onClick={() => deleteMember(idx)}
