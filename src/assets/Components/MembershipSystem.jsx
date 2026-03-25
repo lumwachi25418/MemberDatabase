@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 
 const STORAGE_KEY = "church-members-data";
 
-// Utility to format dates
+// Format dates nicely
 const formatDate = (date) => new Date(date).toLocaleDateString("en-KE");
 
 // PDF Export
@@ -24,8 +24,7 @@ const exportPDF = (members) => {
   members.forEach((m, idx) => {
     doc.text(`${idx + 1}. ${m.name}`, 14, y);
     y += 6;
-    doc.text(`Joined: ${formatDate(m.joinDate)}`, 20, y);
-    doc.text(`Expires: ${formatDate(m.expiryDate)}`, 100, y);
+    doc.text(`Expires: ${formatDate(m.expiryDate)}`, 20, y);
     y += 8;
     if (y > 270) {
       doc.addPage();
@@ -55,10 +54,9 @@ export default function Home() {
   // Add member
   const addMember = () => {
     if (!name.trim()) return;
-    const joinDate = new Date(today);
-    const expiryDate = new Date(joinDate);
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1); // Expires after 1 year
-    const newMember = { name, joinDate: joinDate.toISOString(), expiryDate: expiryDate.toISOString() };
+    const currentYear = new Date().getFullYear();
+    const expiryDate = new Date(`${currentYear}-12-31`); // Expiry 31st Dec of the year
+    const newMember = { name, expiryDate: expiryDate.toISOString() };
     setMembers([...members, newMember]);
     setName("");
   };
@@ -74,7 +72,7 @@ export default function Home() {
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-amber-700">⛪ Church Membership</h1>
-        <p className="text-gray-600 text-sm sm:text-base">Add, renew, and export members</p>
+        <p className="text-gray-600 text-sm sm:text-base">Add members and manage renewals</p>
       </div>
 
       {/* Add Member */}
@@ -101,7 +99,6 @@ export default function Home() {
             <tr>
               <th className="p-2">#</th>
               <th className="p-2">Name</th>
-              <th className="p-2">Joined</th>
               <th className="p-2">Expires</th>
               <th className="p-2">Action</th>
             </tr>
@@ -113,7 +110,6 @@ export default function Home() {
                 <tr key={idx} className={`${isExpired ? "bg-red-100" : "bg-green-50"} border-b`}>
                   <td className="p-2">{idx + 1}</td>
                   <td className="p-2 font-medium">{m.name}</td>
-                  <td className="p-2">{formatDate(m.joinDate)}</td>
                   <td className="p-2">{formatDate(m.expiryDate)}</td>
                   <td className="p-2">
                     <button
@@ -130,7 +126,7 @@ export default function Home() {
         </table>
       </div>
 
-      {/* Export */}
+      {/* Export PDF */}
       <div className="text-center mt-6">
         <button
           onClick={() => exportPDF(members)}
